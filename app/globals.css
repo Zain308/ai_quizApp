@@ -10,20 +10,20 @@
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
+    --primary: 222.2 47.4% 11.2%;
     --primary-foreground: 210 40% 98%;
     --secondary: 210 40% 96%;
-    --secondary-foreground: 222.2 84% 4.9%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
     --muted: 210 40% 96%;
     --muted-foreground: 215.4 16.3% 46.9%;
     --accent: 210 40% 96%;
-    --accent-foreground: 222.2 84% 4.9%;
+    --accent-foreground: 222.2 47.4% 11.2%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
-    --radius: 0.75rem;
+    --ring: 222.2 84% 4.9%;
+    --radius: 0.5rem;
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
     --chart-3: 197 37% 24%;
@@ -38,8 +38,8 @@
     --card-foreground: 210 40% 98%;
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 84% 4.9%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
     --muted: 217.2 32.6% 17.5%;
@@ -50,7 +50,7 @@
     --destructive-foreground: 210 40% 98%;
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 94.1%;
+    --ring: 212.7 26.8% 83.9%;
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
@@ -102,11 +102,9 @@
 
 @keyframes slideIn {
   from {
-    opacity: 0;
-    transform: translateX(-20px);
+    transform: translateX(-100%);
   }
   to {
-    opacity: 1;
     transform: translateX(0);
   }
 }
@@ -114,10 +112,10 @@
 @keyframes pulse {
   0%,
   100% {
-    opacity: 1;
+    transform: scale(1);
   }
   50% {
-    opacity: 0.5;
+    transform: scale(1.05);
   }
 }
 
@@ -166,8 +164,8 @@
   animation: slideIn 0.3s ease-out;
 }
 
-.animate-pulse-slow {
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+.animate-pulse-custom {
+  animation: pulse 2s infinite;
 }
 
 .animate-bounce-slow {
@@ -180,9 +178,7 @@
 
 /* Glass morphism effects */
 .glass {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  @apply bg-white/10 backdrop-blur-md border-white/20;
 }
 
 .glass-dark {
@@ -193,15 +189,12 @@
 
 /* Gradient text */
 .gradient-text {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  @apply bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent;
 }
 
 /* Button hover effects */
 .btn-hover {
-  @apply transition-all duration-200 hover:shadow-lg hover:-translate-y-1;
+  @apply transition-all duration-200 transform hover:scale-105;
 }
 
 /* Card hover effects */
@@ -210,6 +203,10 @@
 }
 
 /* Quiz specific styles */
+.quiz-container {
+  @apply min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900;
+}
+
 .quiz-card {
   @apply bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6 hover:bg-white/10 transition-all duration-300;
 }
@@ -230,15 +227,54 @@
   @apply ring-2 ring-red-500 bg-red-50 dark:bg-red-900/20;
 }
 
+.question-card {
+  @apply glass rounded-xl p-6 shadow-xl;
+}
+
+.option-button {
+  @apply w-full p-4 text-left rounded-lg border-2 transition-all duration-200;
+}
+
+.option-button:hover {
+  @apply bg-white/10 border-purple-400;
+}
+
+.option-button.selected {
+  @apply bg-purple-600/30 border-purple-400;
+}
+
+.option-button.correct {
+  @apply bg-green-600/30 border-green-400;
+}
+
+.option-button.incorrect {
+  @apply bg-red-600/30 border-red-400;
+}
+
 /* Progress bar animations */
 .progress-bar {
-  @apply bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full transition-all duration-500;
-  transition: width 0.3s ease-in-out;
+  @apply w-full bg-white/20 rounded-full h-2 overflow-hidden;
+}
+
+.progress-fill {
+  @apply h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-300;
 }
 
 /* Score animations */
-.score-animation {
-  animation: bounce 0.6s ease-in-out;
+.score-display {
+  @apply text-4xl font-bold text-center;
+}
+
+.score-excellent {
+  @apply text-green-400;
+}
+
+.score-good {
+  @apply text-yellow-400;
+}
+
+.score-needs-improvement {
+  @apply text-red-400;
 }
 
 /* Loading animations */
@@ -252,7 +288,7 @@
 }
 
 .spinner {
-  animation: spin 1s linear infinite;
+  @apply animate-spin rounded-full h-8 w-8 border-b-2 border-white;
 }
 
 /* Difficulty badges */
@@ -297,6 +333,18 @@
 
   .mobile-text {
     @apply text-sm;
+  }
+
+  .quiz-container {
+    @apply p-2;
+  }
+
+  .question-card {
+    @apply p-4;
+  }
+
+  .option-button {
+    @apply p-3 text-sm;
   }
 }
 
