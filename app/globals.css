@@ -68,48 +68,6 @@
   }
 }
 
-@layer components {
-  .glass-card {
-    @apply bg-white/10 backdrop-blur-md border border-white/20 shadow-xl;
-  }
-
-  .gradient-bg {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  }
-
-  .quiz-option {
-    @apply p-4 rounded-lg border-2 border-gray-200 hover:border-blue-400 transition-all duration-200 cursor-pointer;
-  }
-
-  .quiz-option.selected {
-    @apply border-blue-500 bg-blue-50;
-  }
-
-  .quiz-option.correct {
-    @apply border-green-500 bg-green-50;
-  }
-
-  .quiz-option.incorrect {
-    @apply border-red-500 bg-red-50;
-  }
-
-  .glass {
-    @apply bg-white/10 backdrop-blur-md border border-white/20;
-  }
-
-  .glass-dark {
-    @apply bg-black/10 backdrop-blur-md border border-white/10;
-  }
-
-  .quiz-card {
-    @apply bg-white/80 backdrop-blur-sm border border-white/30 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300;
-  }
-
-  .quiz-card-dark {
-    @apply bg-gray-800/80 backdrop-blur-sm border border-gray-700/30 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300;
-  }
-}
-
 /* Custom animations and effects */
 @keyframes gradient-x {
   0%,
@@ -121,23 +79,13 @@
   }
 }
 
-@keyframes float {
-  0%,
-  100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-20px);
-  }
-}
-
 @keyframes pulse-glow {
   0%,
   100% {
-    box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+    box-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
   }
   50% {
-    box-shadow: 0 0 40px rgba(59, 130, 246, 0.8);
+    box-shadow: 0 0 40px rgba(168, 85, 247, 0.8);
   }
 }
 
@@ -173,56 +121,212 @@
   }
 }
 
-.animate-gradient-x {
-  animation: gradient-x 15s ease infinite;
+@keyframes bounce {
+  0%,
+  20%,
+  53%,
+  80%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  40%,
+  43% {
+    transform: translate3d(0, -30px, 0);
+  }
+  70% {
+    transform: translate3d(0, -15px, 0);
+  }
+  90% {
+    transform: translate3d(0, -4px, 0);
+  }
 }
 
-.animate-float {
-  animation: float 6s ease-in-out infinite;
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-gradient-x {
+  animation: gradient-x 15s ease infinite;
 }
 
 .animate-pulse-glow {
   animation: pulse-glow 2s ease-in-out infinite;
 }
 
-.animate-fade-in {
+.animate-fadeIn {
   animation: fadeIn 0.5s ease-out;
 }
 
-.animate-slide-in {
-  animation: slideIn 0.5s ease-out;
+.animate-slideIn {
+  animation: slideIn 0.3s ease-out;
 }
 
 .animate-pulse-slow {
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-/* Glass morphism effect */
+.animate-bounce-slow {
+  animation: bounce 2s infinite;
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Glass morphism effects */
 .glass {
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.dark .glass {
-  background: rgba(0, 0, 0, 0.2);
+.glass-dark {
+  background: rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+/* Gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Button hover effects */
+.btn-hover {
+  @apply transition-all duration-200 hover:shadow-lg hover:-translate-y-1;
+}
+
+/* Card hover effects */
+.card-hover {
+  @apply transition-all duration-300 hover:shadow-xl hover:-translate-y-2;
+}
+
+/* Quiz specific styles */
+.quiz-card {
+  @apply bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6 hover:bg-white/10 transition-all duration-300;
+}
+
+.quiz-option {
+  @apply transition-all duration-200 hover:scale-105 hover:shadow-lg;
+}
+
+.quiz-option.selected {
+  @apply ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-900/20;
+}
+
+.quiz-option.correct {
+  @apply ring-2 ring-green-500 bg-green-50 dark:bg-green-900/20;
+}
+
+.quiz-option.incorrect {
+  @apply ring-2 ring-red-500 bg-red-50 dark:bg-red-900/20;
+}
+
+/* Progress bar animations */
+.progress-bar {
+  @apply bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full transition-all duration-500;
+  transition: width 0.3s ease-in-out;
+}
+
+/* Score animations */
+.score-animation {
+  animation: bounce 0.6s ease-in-out;
+}
+
+/* Loading animations */
+.loading-dots {
+  @apply inline-flex space-x-1;
+}
+
+.loading-dots div {
+  @apply w-2 h-2 bg-current rounded-full animate-pulse;
+  animation-delay: calc(var(--i) * 0.2s);
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+/* Difficulty badges */
+.difficulty-easy {
+  @apply bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400;
+}
+
+.difficulty-medium {
+  @apply bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400;
+}
+
+.difficulty-hard {
+  @apply bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400;
+}
+
+/* Subject specific colors */
+.subject-math {
+  @apply bg-blue-500 text-white;
+}
+
+.subject-science {
+  @apply bg-green-500 text-white;
+}
+
+.subject-history {
+  @apply bg-purple-500 text-white;
+}
+
+.subject-literature {
+  @apply bg-pink-500 text-white;
+}
+
+.subject-geography {
+  @apply bg-teal-500 text-white;
+}
+
+/* Responsive design helpers */
+@media (max-width: 640px) {
+  .mobile-padding {
+    @apply px-4;
+  }
+
+  .mobile-text {
+    @apply text-sm;
+  }
+}
+
+/* Accessibility improvements */
+.focus-visible {
+  @apply outline-none ring-2 ring-purple-400 ring-offset-2 ring-offset-transparent;
+}
+
 /* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
 }
 
-::-webkit-scrollbar-track {
-  background: hsl(var(--muted));
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 3px;
 }
 
-::-webkit-scrollbar-thumb {
-  background: hsl(var(--muted-foreground));
-  border-radius: 4px;
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 3px;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--primary));
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
 }
