@@ -1,165 +1,164 @@
--- Enable necessary extensions
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+-- Enable RLS
+ALTER TABLE IF EXISTS public.users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.quiz_sessions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.quiz_questions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.user_answers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.user_progress ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.achievements ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.user_achievements ENABLE ROW LEVEL SECURITY;
 
--- Create subjects table
-CREATE TABLE IF NOT EXISTS subjects (
-  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-  name VARCHAR(100) NOT NULL UNIQUE,
-  category VARCHAR(50) NOT NULL,
-  description TEXT,
-  color VARCHAR(20) DEFAULT '#3B82F6',
-  icon VARCHAR(50) DEFAULT 'BookOpen',
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+-- Create tables
+CREATE TABLE IF NOT EXISTS public.users (
+    id UUID REFERENCES auth.users(id) PRIMARY KEY,
+    email TEXT UNIQUE NOT NULL,
+    full_name TEXT,
+    avatar_url TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Create user_progress table
-CREATE TABLE IF NOT EXISTS user_progress (
-  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-  user_id UUID NOT NULL,
-  subject_id UUID NOT NULL REFERENCES subjects(id) ON DELETE CASCADE,
-  difficulty VARCHAR(20) NOT NULL CHECK (difficulty IN ('beginner', 'intermediate', 'advanced', 'expert', 'master')),
-  total_questions INTEGER DEFAULT 0,
-  correct_answers INTEGER DEFAULT 0,
-  total_xp INTEGER DEFAULT 0,
-  best_score INTEGER DEFAULT 0,
-  quiz_count INTEGER DEFAULT 0,
-  last_quiz_at TIMESTAMP WITH TIME ZONE,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  UNIQUE(user_id, subject_id, difficulty)
+CREATE TABLE IF NOT EXISTS public.quiz_sessions (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id UUID REFERENCES public.users(id) ON DELETE CASCADE,
+    subject TEXT NOT NULL,
+    difficulty TEXT NOT NULL,
+    total_questions INTEGER NOT NULL DEFAULT 0,
+    correct_answers INTEGER NOT NULL DEFAULT 0,
+    score INTEGER NOT NULL DEFAULT 0,
+    time_taken INTEGER, -- in seconds
+    completed_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Create quiz_sessions table
-CREATE TABLE IF NOT EXISTS quiz_sessions (
-  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-  user_id UUID NOT NULL,
-  subject_id UUID NOT NULL REFERENCES subjects(id) ON DELETE CASCADE,
-  difficulty VARCHAR(20) NOT NULL CHECK (difficulty IN ('beginner', 'intermediate', 'advanced', 'expert', 'master')),
-  questions JSONB,
-  answers INTEGER[],
-  score INTEGER DEFAULT 0,
-  total_questions INTEGER DEFAULT 10,
-  completed_at TIMESTAMP WITH TIME ZONE,
-  xp_earned INTEGER DEFAULT 0,
-  time_taken INTEGER DEFAULT 0,
-  status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'completed', 'abandoned')),
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+CREATE TABLE IF NOT EXISTS public.quiz_questions (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    session_id UUID REFERENCES public.quiz_sessions(id) ON DELETE CASCADE,
+    question_text TEXT NOT NULL,
+    options JSONB NOT NULL, -- Array of options
+    correct_answer INTEGER NOT NULL, -- Index of correct option
+    explanation TEXT,
+    question_order INTEGER NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Create user_achievements table
-CREATE TABLE IF NOT EXISTS user_achievements (
-  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-  user_id UUID NOT NULL,
-  achievement_type VARCHAR(50) NOT NULL,
-  achievement_data JSONB,
-  earned_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  UNIQUE(user_id, achievement_type)
+CREATE TABLE IF NOT EXISTS public.user_answers (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    session_id UUID REFERENCES public.quiz_sessions(id) ON DELETE CASCADE,
+    question_id UUID REFERENCES public.quiz_questions(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES public.users(id) ON DELETE CASCADE,
+    selected_answer INTEGER NOT NULL,
+    is_correct BOOLEAN NOT NULL,
+    time_taken INTEGER, -- in seconds
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Create user_stats table
-CREATE TABLE IF NOT EXISTS user_stats (
-  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-  user_id UUID NOT NULL UNIQUE,
-  total_xp INTEGER DEFAULT 0,
-  level INTEGER DEFAULT 1,
-  quiz_streak INTEGER DEFAULT 0,
-  total_quizzes INTEGER DEFAULT 0,
-  total_correct_answers INTEGER DEFAULT 0,
-  total_questions_answered INTEGER DEFAULT 0,
-  favorite_subject_id UUID REFERENCES subjects(id),
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+CREATE TABLE IF NOT EXISTS public.user_progress (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id UUID REFERENCES public.users(id) ON DELETE CASCADE,
+    subject TEXT NOT NULL,
+    difficulty TEXT NOT NULL,
+    total_quizzes INTEGER NOT NULL DEFAULT 0,
+    total_questions INTEGER NOT NULL DEFAULT 0,
+    correct_answers INTEGER NOT NULL DEFAULT 0,
+    average_score DECIMAL(5,2) NOT NULL DEFAULT 0,
+    best_score INTEGER NOT NULL DEFAULT 0,
+    total_time INTEGER NOT NULL DEFAULT 0, -- in seconds
+    streak INTEGER NOT NULL DEFAULT 0,
+    last_quiz_date TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(user_id, subject, difficulty)
 );
 
--- Insert default subjects
-INSERT INTO subjects (name, category, description, color, icon) VALUES
-('Computer Science', 'Technology', 'Programming, algorithms, data structures, and software engineering', '#3B82F6', 'Code'),
-('Mathematics', 'STEM', 'Algebra, calculus, geometry, statistics, and mathematical reasoning', '#10B981', 'Calculator'),
-('Physics', 'Science', 'Mechanics, thermodynamics, electromagnetism, and quantum physics', '#F59E0B', 'Zap'),
-('Chemistry', 'Science', 'Organic, inorganic, physical chemistry, and chemical reactions', '#EF4444', 'Flask'),
-('Biology', 'Science', 'Cell biology, genetics, ecology, evolution, and human anatomy', '#22C55E', 'Leaf'),
-('History', 'Humanities', 'World history, ancient civilizations, wars, and historical events', '#8B5CF6', 'Clock'),
-('Geography', 'Social Studies', 'World geography, countries, capitals, and physical features', '#06B6D4', 'MapPin'),
-('English Literature', 'Language Arts', 'Classic literature, poetry, grammar, and writing skills', '#EC4899', 'BookOpen'),
-('Psychology', 'Social Science', 'Human behavior, cognitive psychology, and mental processes', '#F97316', 'Brain'),
-('Economics', 'Social Science', 'Microeconomics, macroeconomics, and economic principles', '#84CC16', 'TrendingUp'),
-('Philosophy', 'Humanities', 'Ethics, logic, metaphysics, and philosophical thinking', '#6366F1', 'Lightbulb'),
-('Art History', 'Arts', 'Famous artists, art movements, and artistic techniques', '#D946EF', 'Palette'),
-('Music Theory', 'Arts', 'Musical notation, harmony, rhythm, and composition', '#14B8A6', 'Music'),
-('Astronomy', 'Science', 'Solar system, stars, galaxies, and space exploration', '#7C3AED', 'Star'),
-('Environmental Science', 'Science', 'Ecology, climate change, and environmental conservation', '#059669', 'Globe')
+CREATE TABLE IF NOT EXISTS public.achievements (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    name TEXT NOT NULL UNIQUE,
+    description TEXT NOT NULL,
+    icon TEXT NOT NULL,
+    condition_type TEXT NOT NULL, -- 'score', 'streak', 'total_quizzes', etc.
+    condition_value INTEGER NOT NULL,
+    points INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.user_achievements (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id UUID REFERENCES public.users(id) ON DELETE CASCADE,
+    achievement_id UUID REFERENCES public.achievements(id) ON DELETE CASCADE,
+    earned_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(user_id, achievement_id)
+);
+
+-- Insert default achievements
+INSERT INTO public.achievements (name, description, icon, condition_type, condition_value, points) VALUES
+('First Quiz', 'Complete your first quiz', '🎯', 'total_quizzes', 1, 10),
+('Perfect Score', 'Get 100% on a quiz', '💯', 'score', 100, 25),
+('Quiz Master', 'Complete 10 quizzes', '🏆', 'total_quizzes', 10, 50),
+('Streak Starter', 'Get a 3-quiz streak', '🔥', 'streak', 3, 20),
+('Knowledge Seeker', 'Complete 50 quizzes', '📚', 'total_quizzes', 50, 100),
+('Speed Demon', 'Complete a quiz in under 2 minutes', '⚡', 'time', 120, 30),
+('Perfectionist', 'Get 5 perfect scores', '⭐', 'perfect_scores', 5, 75)
 ON CONFLICT (name) DO NOTHING;
 
--- Create function to update user progress
-CREATE OR REPLACE FUNCTION update_user_progress(
-  p_user_id UUID,
-  p_subject_id UUID,
-  p_difficulty VARCHAR,
-  p_score INTEGER,
-  p_total_questions INTEGER,
-  p_xp_earned INTEGER
-) RETURNS VOID AS $$
-BEGIN
-  -- Insert or update user_progress
-  INSERT INTO user_progress (
-    user_id, subject_id, difficulty, total_questions, correct_answers, total_xp, best_score, quiz_count, last_quiz_at, updated_at
-  ) VALUES (
-    p_user_id, p_subject_id, p_difficulty, p_total_questions, p_score, p_xp_earned, p_score, 1, NOW(), NOW()
-  )
-  ON CONFLICT (user_id, subject_id, difficulty) DO UPDATE SET
-    total_questions = user_progress.total_questions + p_total_questions,
-    correct_answers = user_progress.correct_answers + p_score,
-    total_xp = user_progress.total_xp + p_xp_earned,
-    best_score = GREATEST(user_progress.best_score, p_score),
-    quiz_count = user_progress.quiz_count + 1,
-    last_quiz_at = NOW(),
-    updated_at = NOW();
+-- RLS Policies
+CREATE POLICY "Users can view own profile" ON public.users FOR SELECT USING (auth.uid() = id);
+CREATE POLICY "Users can update own profile" ON public.users FOR UPDATE USING (auth.uid() = id);
+CREATE POLICY "Users can insert own profile" ON public.users FOR INSERT WITH CHECK (auth.uid() = id);
 
-  -- Insert or update user_stats
-  INSERT INTO user_stats (
-    user_id, total_xp, total_quizzes, total_correct_answers, total_questions_answered, updated_at
-  ) VALUES (
-    p_user_id, p_xp_earned, 1, p_score, p_total_questions, NOW()
-  )
-  ON CONFLICT (user_id) DO UPDATE SET
-    total_xp = user_stats.total_xp + p_xp_earned,
-    level = GREATEST(1, (user_stats.total_xp + p_xp_earned) / 100 + 1),
-    total_quizzes = user_stats.total_quizzes + 1,
-    total_correct_answers = user_stats.total_correct_answers + p_score,
-    total_questions_answered = user_stats.total_questions_answered + p_total_questions,
-    updated_at = NOW();
+CREATE POLICY "Users can view own quiz sessions" ON public.quiz_sessions FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can create own quiz sessions" ON public.quiz_sessions FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update own quiz sessions" ON public.quiz_sessions FOR UPDATE USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can view questions from own sessions" ON public.quiz_questions FOR SELECT USING (
+    EXISTS (SELECT 1 FROM public.quiz_sessions WHERE id = session_id AND user_id = auth.uid())
+);
+CREATE POLICY "Users can create questions for own sessions" ON public.quiz_questions FOR INSERT WITH CHECK (
+    EXISTS (SELECT 1 FROM public.quiz_sessions WHERE id = session_id AND user_id = auth.uid())
+);
+
+CREATE POLICY "Users can view own answers" ON public.user_answers FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can create own answers" ON public.user_answers FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can view own progress" ON public.user_progress FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can update own progress" ON public.user_progress FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert own progress" ON public.user_progress FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Everyone can view achievements" ON public.achievements FOR SELECT TO authenticated USING (true);
+
+CREATE POLICY "Users can view own achievements" ON public.user_achievements FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can earn achievements" ON public.user_achievements FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+-- Functions for updating progress
+CREATE OR REPLACE FUNCTION update_user_progress()
+RETURNS TRIGGER AS $$
+BEGIN
+    INSERT INTO public.user_progress (
+        user_id, subject, difficulty, total_quizzes, total_questions, 
+        correct_answers, average_score, best_score, total_time, last_quiz_date
+    )
+    VALUES (
+        NEW.user_id, NEW.subject, NEW.difficulty, 1, NEW.total_questions,
+        NEW.correct_answers, NEW.score, NEW.score, COALESCE(NEW.time_taken, 0), NEW.completed_at
+    )
+    ON CONFLICT (user_id, subject, difficulty) 
+    DO UPDATE SET
+        total_quizzes = user_progress.total_quizzes + 1,
+        total_questions = user_progress.total_questions + NEW.total_questions,
+        correct_answers = user_progress.correct_answers + NEW.correct_answers,
+        average_score = ROUND((user_progress.average_score * user_progress.total_quizzes + NEW.score) / (user_progress.total_quizzes + 1), 2),
+        best_score = GREATEST(user_progress.best_score, NEW.score),
+        total_time = user_progress.total_time + COALESCE(NEW.time_taken, 0),
+        last_quiz_date = NEW.completed_at,
+        updated_at = NOW();
+    
+    RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
--- Create indexes for better performance
-CREATE INDEX IF NOT EXISTS idx_user_progress_user_id ON user_progress(user_id);
-CREATE INDEX IF NOT EXISTS idx_user_progress_subject_id ON user_progress(subject_id);
-CREATE INDEX IF NOT EXISTS idx_quiz_sessions_user_id ON quiz_sessions(user_id);
-CREATE INDEX IF NOT EXISTS idx_quiz_sessions_subject_id ON quiz_sessions(subject_id);
-CREATE INDEX IF NOT EXISTS idx_user_achievements_user_id ON user_achievements(user_id);
-CREATE INDEX IF NOT EXISTS idx_user_stats_user_id ON user_stats(user_id);
-
--- Enable Row Level Security
-ALTER TABLE subjects ENABLE ROW LEVEL SECURITY;
-ALTER TABLE user_progress ENABLE ROW LEVEL SECURITY;
-ALTER TABLE quiz_sessions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE user_achievements ENABLE ROW LEVEL SECURITY;
-ALTER TABLE user_stats ENABLE ROW LEVEL SECURITY;
-
--- Create policies
-CREATE POLICY "Subjects are viewable by everyone" ON subjects FOR SELECT USING (true);
-
-CREATE POLICY "Users can view their own progress" ON user_progress FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Users can insert their own progress" ON user_progress FOR INSERT WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "Users can update their own progress" ON user_progress FOR UPDATE USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can view their own quiz sessions" ON quiz_sessions FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Users can insert their own quiz sessions" ON quiz_sessions FOR INSERT WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "Users can update their own quiz sessions" ON quiz_sessions FOR UPDATE USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can view their own achievements" ON user_achievements FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Users can insert their own achievements" ON user_achievements FOR INSERT WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "Users can view their own stats" ON user_stats FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Users can insert their own stats" ON user_stats FOR INSERT WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "Users can update their own stats" ON user_stats FOR UPDATE USING (auth.uid() = user_id);
+-- Trigger for updating progress
+DROP TRIGGER IF EXISTS trigger_update_user_progress ON public.quiz_sessions;
+CREATE TRIGGER trigger_update_user_progress
+    AFTER UPDATE OF completed_at ON public.quiz_sessions
+    FOR EACH ROW
+    WHEN (NEW.completed_at IS NOT NULL AND OLD.completed_at IS NULL)
+    EXECUTE FUNCTION update_user_progress();

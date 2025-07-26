@@ -119,3 +119,9 @@ function generateFallbackQuestions(subject: string, difficulty: string, count: n
       question: `${subject} question ${index + 1} (${difficulty} level)`,
     }))
 }
+
+export class AIQuestionGenerator {
+  static async generateQuestions(params: GenerateQuestionsParams): Promise<Question[]> {
+    return generateQuestions(params)
+  }
+}
