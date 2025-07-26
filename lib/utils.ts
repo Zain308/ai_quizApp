@@ -15,27 +15,36 @@ export function calculateScore(correct: number, total: number): number {
   return Math.round((correct / total) * 100)
 }
 
+export function getScoreColor(score: number): string {
+  if (score >= 80) return "text-green-600"
+  if (score >= 60) return "text-yellow-600"
+  return "text-red-600"
+}
+
+export function getScoreBadgeColor(score: number): string {
+  if (score >= 80) return "bg-green-100 text-green-800"
+  if (score >= 60) return "bg-yellow-100 text-yellow-800"
+  return "bg-red-100 text-red-800"
+}
+
 export function getDifficultyColor(difficulty: string): string {
   switch (difficulty.toLowerCase()) {
-    case "beginner":
-      return "text-green-600"
-    case "intermediate":
-      return "text-yellow-600"
-    case "advanced":
-      return "text-orange-600"
-    case "expert":
-      return "text-red-600"
-    case "master":
-      return "text-purple-600"
+    case "easy":
+      return "bg-green-100 text-green-800"
+    case "medium":
+      return "bg-yellow-100 text-yellow-800"
+    case "hard":
+      return "bg-red-100 text-red-800"
     default:
-      return "text-gray-600"
+      return "bg-gray-100 text-gray-800"
   }
 }
 
-export function getScoreColor(score: number): string {
-  if (score >= 90) return "text-green-600"
-  if (score >= 80) return "text-blue-600"
-  if (score >= 70) return "text-yellow-600"
-  if (score >= 60) return "text-orange-600"
-  return "text-red-600"
+export function shuffleArray<T>(array: T[]): T[] {
+  const shuffled = [...array]
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+  }
+  return shuffled
 }

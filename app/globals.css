@@ -69,12 +69,55 @@
 }
 
 @layer components {
+  .glass-card {
+    @apply bg-white/10 backdrop-blur-md border border-white/20 shadow-xl;
+  }
+
+  .gradient-bg {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
+
+  .quiz-option {
+    @apply p-4 rounded-lg border-2 border-gray-200 hover:border-blue-400 transition-all duration-200 cursor-pointer;
+  }
+
+  .quiz-option.selected {
+    @apply border-blue-500 bg-blue-50;
+  }
+
+  .quiz-option.correct {
+    @apply border-green-500 bg-green-50;
+  }
+
+  .quiz-option.incorrect {
+    @apply border-red-500 bg-red-50;
+  }
+
   .glass {
     @apply bg-white/10 backdrop-blur-md border border-white/20;
   }
 
   .glass-dark {
     @apply bg-black/10 backdrop-blur-md border border-white/10;
+  }
+
+  .quiz-card {
+    @apply bg-white/80 backdrop-blur-sm border border-white/30 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300;
+  }
+
+  .quiz-card-dark {
+    @apply bg-gray-800/80 backdrop-blur-sm border border-gray-700/30 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300;
+  }
+}
+
+/* Custom animations and effects */
+@keyframes gradient-x {
+  0%,
+  100% {
+    transform: translateX(0%);
+  }
+  50% {
+    transform: translateX(-100%);
   }
 }
 
@@ -98,6 +141,42 @@
   }
 }
 
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-gradient-x {
+  animation: gradient-x 15s ease infinite;
+}
+
 .animate-float {
   animation: float 6s ease-in-out infinite;
 }
@@ -106,14 +185,44 @@
   animation: pulse-glow 2s ease-in-out infinite;
 }
 
-.gradient-bg {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out;
 }
 
-.quiz-gradient {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+.animate-slide-in {
+  animation: slideIn 0.5s ease-out;
 }
 
-.success-gradient {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+.animate-pulse-slow {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Glass morphism effect */
+.glass {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.dark .glass {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--muted));
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--primary));
 }
